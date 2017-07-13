@@ -1,0 +1,20 @@
+QCCloud Check In Program Version History
+
+Version 1.0.0
+-7/9/17
+
+**
+Program created and released
+Features
+-QCCloud User Authentication
+-Load classes from text file
+-Gui with class select buttons
+-Gui with swimmer check box selections
+-Clear all Swimmers button
+-Check In Button
+-Automated swimmer check in button via Selenium
+-Searches for user via membership ID
+-Gui of results
+  =Tells users which swimmers were inputted correctly, forcefully or were unable to be entered due to errors
+
+-Nick Karlovich
