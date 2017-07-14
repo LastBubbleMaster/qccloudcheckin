@@ -37,11 +37,12 @@ public class gui{
 	static JLabel line2 = new JLabel("");
 	static JLabel line3 = new JLabel("");
 	
-	static ArrayList<String> good = new ArrayList<String>();
-	static ArrayList<String> bad = new ArrayList<String>();
-	static ArrayList<String> unable = new ArrayList<String>();
+	static ArrayList<Swimmer> good = new ArrayList<Swimmer>();
+	static ArrayList<Swimmer> bad = new ArrayList<Swimmer>();
+	static ArrayList<Swimmer> unable = new ArrayList<Swimmer>();
 	static ArrayList<String> checkedSwimText;
 	static ArrayList<String> checkedSwimCodes = new ArrayList<String>();
+	static ArrayList<Swimmer> checkedSwimSwimmers = new ArrayList<Swimmer>();
 	
 	//NOT CURRENTLY USED
 	public static void statusGUI()
@@ -60,6 +61,22 @@ public class gui{
 		statusQueue.add(0,line1);
 		statusQueue.add(0,line2);
 		statusQueue.add(0,line3);
+	}
+	
+	public static void printGoodBadUnable()
+	{
+		System.out.println("[");
+		for(Swimmer x : good)
+			System.out.print(x + ",");
+		System.out.println("][");
+		for(Swimmer x : bad)
+			System.out.print(x + ",");
+		System.out.println("][");
+		for(Swimmer x : unable)
+			System.out.print(x + ",");
+		System.out.println("]");
+		
+		System.out.println();
 	}
 	
 	public static void resultGUI()
@@ -98,15 +115,15 @@ public class gui{
 		badLabel.setBackground(Color.YELLOW);
 		unableLabel.setBackground(Color.CYAN);
 		
-		System.out.println("GOOD BAD UNABLE SIZES: " + good + " ; " + bad + " ; " + unable);
+		System.out.print("GOOD BAD UNABLE SIZES: ");
+		printGoodBadUnable();
 		
 		panel.add(goodLabel);
 		if(good.size() == 0){
 			panel.add(new JLabel("NONE"));
 		} else {
-			for(String x: good)
+			for(Swimmer y: good)
 			{
-				Swimmer y = SwimClass.getUserByBarcode(x);
 				panel.add(new JLabel(y.getFirstName() + " " + y.getLastName() + " " + y.getBarcode()));
 			}
 		}
@@ -115,8 +132,7 @@ public class gui{
 		if(bad.size() == 0) {
 			panel2.add(new JLabel("NONE"));	
 		} else {
-			for(String x: bad){
-				Swimmer y = SwimClass.getUserByBarcode(x);
+			for(Swimmer y: bad){
 				panel2.add(new JLabel(y.getFirstName() + " " + y.getLastName() + " " + y.getBarcode()));
 			}
 				
@@ -126,16 +142,15 @@ public class gui{
 		if(unable.size() == 0){
 			panel4.add(new JLabel("NONE"));
 		} else {
-			for(String x: unable)
+			for(Swimmer y: unable)
 			{
-				Swimmer y = SwimClass.getUserByBarcode(x);
 				panel4.add(new JLabel(y.getFirstName() + " " + y.getLastName() + " " + y.getBarcode()));
 			}
 		}
 		
-		good = new ArrayList<String>();
-		bad = new ArrayList<String>();
-		unable = new ArrayList<String>();
+		good = new ArrayList<Swimmer>();
+		bad = new ArrayList<Swimmer>();
+		unable = new ArrayList<Swimmer>();
 		checkedSwimText = new ArrayList<String>();
 		checkedSwimCodes = new ArrayList<String>();
 		
@@ -240,30 +255,63 @@ public class gui{
 				
 				checkedSwimText = manageCheckedCheckboxes(panel2);
 				
+				
+				
 				if(checkedSwimText.size() > 1)
 				{
 					System.out.println("------------");
-					for(String x: checkedSwimText)
+					System.out.println("Swimmers Added: ");
+					for(String swimmer : checkedSwimText)
 					{
-						System.out.println("Swimmers Added: " + x);
+						System.out.println(swimmer);
+						String lN = swimmer.substring(0, swimmer.indexOf(","));
+						swimmer = swimmer.substring(swimmer.indexOf(",") + 1);
+						String fN = swimmer.substring(0, swimmer.indexOf(":"));
+						swimmer = swimmer.substring(swimmer.indexOf(":") + 1);
+						String mID = swimmer.substring(0);
+						checkedSwimSwimmers.add(new Swimmer(fN,lN,mID));
+					}
+					/*for(String x: checkedSwimText)
+					{
+						
 						int i = x.indexOf(":");
 						checkedSwimCodes.add(x.substring(i + 1));
-					}
-					for(String u : checkedSwimCodes)
+					}*/
+					for(Swimmer u : checkedSwimSwimmers)
 						System.out.println(u);
+					
+					
+					/*for(String u : checkedSwimCodes)
+						System.out.println(u);*/
 					System.out.println("-==-==-");
 					frame2.dispose();
 					
 				} else if(checkedSwimText.size() ==1)
 				{
 					System.out.println("------------");
+					System.out.println("Swimmer Added: ");
+					
+					for(String swimmer : checkedSwimText)
+					{
+						System.out.println(swimmer);
+						String lN = swimmer.substring(0, swimmer.indexOf(","));
+						swimmer = swimmer.substring(swimmer.indexOf(",") + 1);
+						String fN = swimmer.substring(0, swimmer.indexOf(":"));
+						swimmer = swimmer.substring(swimmer.indexOf(":") + 1);
+						String mID = swimmer.substring(0);
+						checkedSwimSwimmers.add(new Swimmer(fN,lN,mID));
+					}
+					/*
 					for(String x: checkedSwimText)
 					{
-						System.out.println("Swimmer Added: " + x);
+						
 						int i = x.indexOf(":");
 						checkedSwimCodes.add(x.substring(i + 1));
 					}
 					for(String u : checkedSwimCodes)
+						System.out.println(u);*/
+					
+					for(Swimmer u : checkedSwimSwimmers)
 						System.out.println(u);
 					System.out.println("-==-==-");
 					frame2.dispose();
@@ -307,11 +355,11 @@ public class gui{
 	{
 		
 		panel7 = new JPanel();
-		panel7.setLayout(new GridLayout(checkedSwimCodes.size() + 2,0));
-		System.out.println(checkedSwimCodes.size() + " : SIZE");
-		for(String x : checkedSwimCodes)
+		panel7.setLayout(new GridLayout(checkedSwimSwimmers.size() + 2,0));
+		System.out.println(checkedSwimSwimmers.size() + " : SIZE");
+		for(Swimmer y : checkedSwimSwimmers)
 		{
-			Swimmer y = SwimClass.getUserByBarcode(x);
+			//Swimmer y = SwimClass.getUserByBarcode(x);
 			panel7.add(new JLabel(y.getFirstName() + " " + y.getLastName() + " " + y.getBarcode()));
 		}
 		JButton finalCheck = new JButton("Check-In");
@@ -327,7 +375,7 @@ public class gui{
 				checkIn.connectToWebsite();
 				checkIn.login();
 				try {
-					checkIn.loginSwimmers(checkedSwimCodes);
+					checkIn.loginSwimmers(checkedSwimSwimmers);
 					frame6.dispose();
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();

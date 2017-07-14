@@ -10,7 +10,10 @@ public class Swimmer {
 	{
 		firstName = fN;
 		lastName = lN;
-		barcode = b;
+		if(b.length() == 0)
+			barcode = "NOT AVAILABLE";
+		else
+			barcode = b;
 		
 	}
 	
@@ -24,12 +27,13 @@ public class Swimmer {
 	}
 	public String getBarcode()
 	{
+		
 		return barcode;
 	}
 	
 	public String toString()
 	{
-		System.out.println(getFirstName() + " " + getLastName() + " " + getBarcode());
+		System.out.print(getFirstName() + " " + getLastName() + " " + getBarcode());
 		return "";
 	}
 	

@@ -34,20 +34,23 @@ public class checkIn {
 	static String UB;
 	static String UU;
 	static String UP;
+	static boolean found;
+	static String mID;
+	static String fN;
+	static String lN;
+	static boolean hasID;
+	static String pxpath;
 
-	public static void credits(){
+	public static void credits() {
 		System.out.println("[][][][][][][][][][][][][][][]");
-		System.out.println("QuikCheckCloud Check-In Tool");
-		System.out.println("Developed By: Nick Karlovich");
-		System.out.println("        Version 1.0.0");
-		System.out.println("        July, 9, 2017");
+		System.out.println(" QuikCheckCloud Check-In Tool");
+		System.out.println(" Developed By: Nick Karlovich");
+		System.out.println("        Version 1.1.0");
+		System.out.println("        July, 13, 2017");
 		System.out.println("[][][][][][][][][][][][][][][]");
-		
-		
+
 	}
-	
-	
-	
+
 	public static void chromeSetup() {
 		String exePath = "H:/Desktop/chrome Driver/chromedriver.exe";
 		System.setProperty("webdriver.chrome.driver", exePath);
@@ -63,7 +66,7 @@ public class checkIn {
 		System.out.println("Connected");
 
 	}
-	
+
 	public static void getName() {
 		driver.get("https://qccloud.net/checkin/search");
 		System.out.println("--");
@@ -71,10 +74,108 @@ public class checkIn {
 		System.out.println("--");
 		System.out.println(driver.findElement(By.xpath("//tr[@id='tr_nav1']//td[1]")));
 		System.out.println("--");
-		
+
 	}
-	
-	
+
+	public static String xpathGetter(Swimmer test1) {
+		String xpath = "";
+		int counter = 0;
+		found = false;
+		do {
+			counter++;
+			xpath = "tr_nav";
+			
+			xpath = xpath + Integer.toString(counter);
+			System.out.println(xpath);
+			System.out.println("Counter" + Integer.toString(counter));
+			System.out.println(counter);
+			if (isElementPresent(By.id(xpath))) {
+				System.out.println("ELEMENT IS PRESENT");
+				String gottenSwim = driver.findElement(By.id(xpath)).getText();
+				System.out.println(gottenSwim);
+				//gottenSwim = gottenSwim.toLowerCase();
+				mID = gottenSwim.substring(0, gottenSwim.indexOf("  "));
+				gottenSwim = gottenSwim.substring(gottenSwim.indexOf("  ") + 2);
+				System.out.println(gottenSwim);
+				lN = gottenSwim.substring(0, gottenSwim.indexOf("  "));
+				gottenSwim = gottenSwim.substring(gottenSwim.indexOf("  ") + 2);
+				System.out.println(gottenSwim);
+				fN = gottenSwim.substring(0, gottenSwim.indexOf("  "));
+				System.out.println("mID|" + mID + "|lN|" + lN + "|fN|" + fN + "|");
+				System.out.println("|" + test1.getBarcode() + "|" + test1.getFirstName() + "|" + test1.getLastName()  + "|");
+				System.out.println("HAS ID?" + hasID);
+				if (hasID) {
+					if (test1.getBarcode().equalsIgnoreCase(mID) && test1.getFirstName().equalsIgnoreCase(fN) && test1.getLastName().equalsIgnoreCase(lN)){ 
+						found = true;
+					}
+				} else if (test1.getFirstName().equalsIgnoreCase(fN) && test1.getLastName().equalsIgnoreCase(lN)) {
+					found = true;
+				 }
+			}
+		} while (!found && isElementPresent(By.id(xpath)));
+
+		if (found)
+			return xpath;
+		else
+			return "NEXTPAGE";
+	}
+
+	public static String goToNextPage() {
+		if (isElementPresent(By.className("next"))) {
+			driver.findElement(By.className("next")).click();
+			found = false;
+			double startTime = System.currentTimeMillis();
+			try {
+				counter1 = 0;
+				while (isElementPresent(By.className("hd-spinner"))) {
+					if (!isElementPresent(By.className("hd-spinner")))
+						found = false;
+				}
+				double endTime = System.currentTimeMillis() - startTime;
+				System.out.println("Next Page Spinner Time: " + endTime / 1000 + "seconds");
+			} catch (StaleElementReferenceException e2) {
+
+			}
+			return "NEXT PAGE";
+		} else {
+			return "NO NEXT PAGE";
+		}
+	}
+
+	public static String getxpath(Swimmer test) {
+		
+		if (test.getBarcode().equals("NOT AVAILABLE"))
+			hasID = false;
+		else
+			hasID = true;
+		
+		System.out.println("HAS A BARCODE: " + hasID);
+		String xpath = xpathGetter(test);
+		while (xpath.equals("NEXTPAGE")) {
+			System.out.println("NEXT PAGE RAN");
+			if (goToNextPage().equals("NO NEXT PAGE")) {
+				gui.unable.add(test);
+				System.out.println("NO NEXT PAGE");
+				return "NO PATH USER NOT FOUND";
+			} else {
+				xpath = xpathGetter(test);
+				// went to next page and check page again with while statement
+			}
+
+		}
+		return xpath;
+		/*
+		if (hasID) {
+			if (test.getBarcode().equals(mID) && test.getFirstName().equals(fN) && test.getLastName().equals(lN)) {
+				return xpath;
+			}
+		} else if (test.getFirstName().equals(fN) && test.getLastName().equals(lN)) {
+			return xpath;
+		}*/
+		
+		//return "NO PATH USER NOT FOUND";
+
+	}
 
 	public static void shutdown() {
 		driver.close();
@@ -88,23 +189,21 @@ public class checkIn {
 		boolean once = true;
 		int ccc = 0;
 		while (driver.getCurrentUrl().equals("https://qccloud.net/account/login") && once) {
-			try{
-			UB = driver.findElement(By.xpath("//input[@id='bname']")).getAttribute("value");
-			UU = driver.findElement(By.xpath("//input[@id='login']")).getAttribute("value");
-			UP = driver.findElement(By.xpath("//input[@id='password']")).getAttribute("value");
+			try {
+				UB = driver.findElement(By.xpath("//input[@id='bname']")).getAttribute("value");
+				UU = driver.findElement(By.xpath("//input[@id='login']")).getAttribute("value");
+				UP = driver.findElement(By.xpath("//input[@id='password']")).getAttribute("value");
 			} catch (StaleElementReferenceException eq) {
-				
+
 			} catch (NoSuchElementException eq) {
-				
+
 			}
-			/*if(ccc % 20 == 0)
-			{
-				System.out.println("Business Name: " + UB);
-				System.out.println("Username: " + UU);
-				System.out.println("Password: " + UP);
-			}	*/
-			
-			
+			/*
+			 * if(ccc % 20 == 0) { System.out.println("Business Name: " + UB);
+			 * System.out.println("Username: " + UU);
+			 * System.out.println("Password: " + UP); }
+			 */
+
 			try {
 				if (driver.findElement(By.className("text-danger")).getText()
 						.equals("Invalid Business Name, Username or Password. Please try again.") && once) {
@@ -155,14 +254,14 @@ public class checkIn {
 
 	}
 
-	public static void loginSwimmers(ArrayList<String> barcodes) throws InterruptedException {
+	public static void loginSwimmers(ArrayList<Swimmer> swimmer) throws InterruptedException {
 		double allSwimStart = System.currentTimeMillis();
-		
-		for (String x : barcodes) {
+
+		for (Swimmer x : swimmer) {
 			double swimStart = System.currentTimeMillis();
 			System.out.println("\n" + "====================");
 			System.out.print("User: ");
-			System.out.print(SwimClass.getUserByBarcode(x));
+			System.out.print(x);
 			System.out.println("====================");
 			// System.out.println();
 
@@ -170,8 +269,8 @@ public class checkIn {
 			WebElement searchBox = driver.findElement(By.id("query"));
 			WebElement mySelectElement = driver.findElement(By.id("field"));
 			Select dropdown = new Select(mySelectElement);
-			dropdown.selectByIndex(3);
-			driver.findElement(By.id("query")).sendKeys(x);
+			dropdown.selectByIndex(2);
+			driver.findElement(By.id("query")).sendKeys(x.getLastName());
 
 			boolean found = true;
 			double startTime = System.currentTimeMillis();
@@ -195,7 +294,7 @@ public class checkIn {
 			}
 			if (!isElementPresent(By.className("hd-spinner")))
 				found = false;
-
+			// Second Enter Press
 			wait.until(ExpectedConditions.elementToBeClickable(searchBox));
 			searchBox.sendKeys(Keys.ENTER);
 
@@ -223,14 +322,8 @@ public class checkIn {
 			if (!(isElementPresent(By.xpath("//table")))) {
 				gui.unable.add(x);
 				nonExistent = true;
-				System.out.println("User with this Membership ID doesn't exist");
+				System.out.println("User with this last name doesn't exist");
 			}
-			/*
-			 * long stopTime = System.currentTimeMillis(); long elapsedTime =
-			 * stopTime - startTime; double finalTime = (double)elapsedTime /
-			 * 1000; System.out.println("Time Taken: " + finalTime +
-			 * " seconds");
-			 */
 
 			if (!nonExistent) {
 				found = true;
@@ -251,54 +344,77 @@ public class checkIn {
 				}
 				if (!isElementPresent(By.className("hd-spinner")))
 					found = false;
-				WebElement baseTable = null;
-				baseTable = driver.findElement(By.xpath("//table"));
-				WebElement tableRow = baseTable.findElement(By.id("tr_nav1"));
-				WebElement cellINeed = null;
-				cellINeed = tableRow.findElement(By.xpath("//td[1]"));
-				wait.until(ExpectedConditions.elementToBeClickable(cellINeed));
-				HoverAndClick(driver, cellINeed, cellINeed);
 
-				System.out.println("TRIED HOVER AND CLICK");
-				Dimension dimension = new Dimension(1400, 800);
-				driver.manage().window().setSize(dimension);
-				swimLessonElement = driver.findElement(By.id("activity_4"));
-				wait.until(ExpectedConditions.elementToBeClickable(swimLessonElement));
-				swimLessonElement.click();
+				// START LOOKING FOR CORRECT ROW WITH USER
 
-				checkInButton = driver.findElement(By.id("chkbtn"));
-				forceInButton = driver.findElement(By.id("forcebtn"));
-				found = false;
-				boolean clicked = false;
-				startTime = System.currentTimeMillis();
-				while ((checkInButton.isDisplayed() || forceInButton.isDisplayed()) && clicked == false) {
-					counter1 = 0;
-					while (isElementPresent(By.className("hd-spinner"))) {
-						/*
-						if (counter1 % 35 == 0)
-							System.out.println("Force/Safe Login: " + found);
-						counter1++;*/
+				WebElement swimmerLine = null;
+				String xpath = getxpath(x);
+				pxpath = "//tr[@id='" + xpath + "']//td[1]";
+				System.out.println("xpath run with xpath as " + "//tr[@id='" + xpath + "']//td[1]");
+				if (!(xpath.equals("NO PATH USER NOT FOUND"))) {
+					swimmerLine = driver.findElement(By.xpath("//tr[@id='" + xpath + "']//td[1]"));
+					TimeUnit.SECONDS.sleep(3);
+					HoverAndClick(driver,swimmerLine,swimmerLine);
+					
+					
+					
+					/*
+					WebElement baseTable = null;
+					baseTable = driver.findElement(By.xpath("//table"));
+					WebElement tableRow = baseTable.findElement(By.id("tr_nav1"));
+					WebElement cellINeed = null;
+					cellINeed = tableRow.findElement(By.xpath("//td[1]"));
+					wait.until(ExpectedConditions.elementToBeClickable(cellINeed));*/
+					//HoverAndClick(driver, cellINeed, cellINeed);
+
+					System.out.println("TRIED HOVER AND CLICK");
+					Dimension dimension = new Dimension(1400, 800);
+					driver.manage().window().setSize(dimension);
+					swimLessonElement = driver.findElement(By.id("activity_4"));
+					wait.until(ExpectedConditions.elementToBeClickable(swimLessonElement));
+					swimLessonElement.click();
+
+					checkInButton = driver.findElement(By.id("chkbtn"));
+					forceInButton = driver.findElement(By.id("forcebtn"));
+					found = false;
+					boolean clicked = false;
+					startTime = System.currentTimeMillis();
+					while ((checkInButton.isDisplayed() || forceInButton.isDisplayed()) && clicked == false) {
+						counter1 = 0;
+						while (isElementPresent(By.className("hd-spinner"))) {
+							/*
+							 * if (counter1 % 35 == 0)
+							 * System.out.println("Force/Safe Login: " + found);
+							 * counter1++;
+							 */
+						}
+						double endTime = System.currentTimeMillis() - startTime;
+						System.out.println("Force/Safe Login Spinner: " + endTime / 1000 + "seconds");
+						found = true;
+
+						if (checkInButton.isDisplayed()) {
+							System.out.println("User is signed up for this class");
+							gui.good.add(x);
+							clicked = true;
+							/*
+							 * checkInButton.click(); TimeUnit.SECONDS.sleep(3);
+							 */
+						} else if (forceInButton.isDisplayed()) {
+							System.out.println("User Isn't Signed up for this class");
+							gui.bad.add(x);
+							clicked = true;
+							/*
+							 * forceInButton.click(); TimeUnit.SECONDS.sleep(3);
+							 */
+						}
+
 					}
-					double endTime = System.currentTimeMillis() - startTime;
-					System.out.println("Force/Safe Login Spinner: " + endTime / 1000 + "seconds");
-					found = true;
-
-					if (checkInButton.isDisplayed()) {
-						System.out.println("User is signed up for this class");
-						gui.good.add(x);
-						clicked = true;
-						/*checkInButton.click();
-						TimeUnit.SECONDS.sleep(3);*/
-					} else if (forceInButton.isDisplayed()) {
-						System.out.println("User Isn't Signed up for this class");
-						gui.bad.add(x);
-						clicked = true;
-						/*forceInButton.click();
-						TimeUnit.SECONDS.sleep(3);*/
-					}
-
+				} else {
+					System.out.println("User Couldn't be found in system");
 				}
 			}
+			System.out.println("SWIMMER IN LOOP " + x.toString());
+			System.out.println("WHAT WEBPATGE FINDS" + driver.findElement(By.xpath("//div[@class='page-header']//h4")).getText());
 			driver.get("https://qccloud.net/checkin/search");
 			double endTime = System.currentTimeMillis() - swimStart;
 			System.out.println("Swimmer: " + endTime / 1000 + "seconds");
@@ -313,7 +429,7 @@ public class checkIn {
 
 	public static void HoverAndClick(WebDriver driver, WebElement elementToHover, WebElement elementToClick) {
 		Actions action = new Actions(driver);
-		action.moveToElement(driver.findElement(By.xpath("//tbody//tr[@id='tr_nav1']//td[1]"))).doubleClick().build()
+		action.moveToElement(driver.findElement(By.xpath(pxpath))).doubleClick().build()
 				.perform();
 	}
 

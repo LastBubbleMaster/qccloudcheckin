@@ -35,6 +35,7 @@ public class CreateClasses {
 				} else {
 					for(String swimmer : swimmers)
 					{
+						//swimmer = swimmer.toLowerCase();
 						i = swimmer.indexOf(",");
 						swimFName = swimmer.substring(0,i);
 						swimmer = swimmer.substring(i + 1);
