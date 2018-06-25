@@ -9,8 +9,9 @@ public class SwimClass {
 	private String startTime;
 	private String level;
 	private ArrayList<Swimmer> students;
+	public ArrayList<String> teachersNames;
 	
-	
+	//Default Constructor
 	public SwimClass(String t, String d, String sT, String l,ArrayList<Swimmer> s){
 		teacher = t;
 		day = d;
@@ -19,6 +20,7 @@ public class SwimClass {
 		students = s;
 	}
 	
+	//Getter Methods
 	public  String getTeacher()
 	{
 		return teacher;
@@ -39,6 +41,8 @@ public class SwimClass {
 	{
 		return students;
 	}
+	
+	
 	public String toString()
 	{
 		System.out.println(getTeacher());
@@ -48,11 +52,13 @@ public class SwimClass {
 		int i = students.size();
 		System.out.println(i);
 		for(int x = 0; x < i; x++)
-			System.out.print(students.get(x));
+			System.out.println(students.get(x));
 		
 		System.out.println();
 		return "";
 	}
+	
+	
 	
 	public static Swimmer getUserByBarcode(String searchCode)
 	{
@@ -65,10 +71,8 @@ public class SwimClass {
 					return y;
 				}
 			}
-			
 		}
 		return null;
-		
 	}
 	
 	

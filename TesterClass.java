@@ -2,81 +2,73 @@ package swimLesson;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.concurrent.TimeUnit;
-
 import javax.swing.filechooser.FileSystemView;
 
-import java.util.ArrayList;
-import java.util.Scanner;
-
-@SuppressWarnings("unused")
+//@SuppressWarnings("unused")
 public class TesterClass {
 
-	static String real_path_name; 
-	
-	public static void main(String[] args) throws InterruptedException, IOException
-	{
-		/*
-		checkIn.chromeSetup();
-		checkIn.connectToWebsite();
-		TimeUnit.SECONDS.sleep(15);
-		checkIn.getName();
-		*/
-		
-		
+	static String real_path_name = "";
+
+	public static void main(String[] args) throws InterruptedException, IOException {
+		System.out.println(new File(".").getAbsolutePath());
+
+		boolean debug = true;
 		checkIn.credits();
-		if(checkIn.authenticateUser())
-		{	
+		
+		//Authentication
+		if (debug || checkIn.authenticateUser()) {
 			System.out.println("USER AUTHENTICATED as user: " + checkIn.UU);
 		} else {
 			System.out.println("USER COULDN'T BE AUTHENTICATED");
 			System.exit(1);
-			
 		}
 		
-		File home = FileSystemView.getFileSystemView().getHomeDirectory();
-		String path_name = home.getAbsolutePath() + "\\SwimClassSheet.txt";
-		File testa = new File(path_name);
-		boolean firstRun = false;
-		System.out.println("Path to desktop: " + home.getAbsolutePath());
-		if(!testa.exists()){
-			firstRun = true;
-			//----Creates a new file-----
-			//System.out.println(testa.createNewFile());
-			//testa.createNewFile();
-		}
-		if(firstRun){
-			System.out.println("We didn't find a SwimClassSheet.txt file on your desktop, either move your " + 
-					"SwimClassSheet.txt file or create a SwimClassSheet.txt file.");
-			gui.errorGUI("We didn't find a SwimClassSheet.txt file on your desktop, either move your SwimClassSheet.txt file or create a SwimClassSheet.txt file");
 
+		File test = FileSystemView.getFileSystemView().getDefaultDirectory();
+		String startDir = test.getAbsolutePath();
+		File dirThere = new File(startDir + "\\QCCloud Check-In");
+		boolean firstRun = false;
+		if (!dirThere.exists() && !dirThere.isDirectory()) {
+			firstRun = true;
+			System.out.println("FIRST TIME SETUP");
+
+		}
+		if (firstRun) {
+			new File(startDir + "\\QCCloud Check-In").mkdir();
+			gui.firstTimeGUI();
+			textReader.generateCsvFile(startDir + "\\QCCloud Check-In\\settings.csv");
+			//gui.fileChooser();
+
+			while (real_path_name.length() == 0) {
+				TimeUnit.SECONDS.sleep(2);
+				System.out.println("WAITING FOR FILE CHOOSER");
+			}
+
+			CSVHandler.startupBuilder();
+			CSVHandler.firstTimeSettings();
+			real_path_name = CSVHandler.getSetting("SwimClassSheet.txt Location");
 		} else {
+			CSVHandler.testForUpdatedSettings();
+			CSVHandler.startupBuilder();
+			real_path_name = CSVHandler.getSetting("SwimClassSheet.txt Location");
 			System.out.println("No Errors in finding ref. file");
-			//normal run
 		}
 		System.out.println();
-		
-		//code from below is here
-		
 		textReader file;
 		String[] aryLines = null;
-		
-		real_path_name = path_name;
-		try{
+
+		try {
 			file = new textReader(real_path_name);
 			aryLines = file.openFile();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
+		System.out.println("TESTING" + aryLines.length);
 		CreateClasses.createClasses(aryLines);
-		System.out.println("\n" + "End of Swim Classes " + "\n" + "===========================");
+		System.out.println("End of Swim Classes " + "\n" + "===========================");
 		TimeUnit.MILLISECONDS.sleep(500);
 		gui.createGUI(CreateClasses.getSwimClass());
-		
+
 	}
 }

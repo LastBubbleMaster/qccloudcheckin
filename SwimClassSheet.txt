@@ -1,0 +1,20 @@
+Example Swim Class File Setup
+**
+Nick K
+Monday
+5:00
+101
+==
+Nick,Karlovich,1234
+Gus,Kaiser,8972
+Kathryn,Jenkins,9827
+--
+**
+Camryn H
+Wednesday
+6:15
+402/403
+==
+Jack,Skudlarke,9284
+Brooke,Parish,6283
+--
