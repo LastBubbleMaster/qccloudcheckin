@@ -18,6 +18,7 @@ import org.openqa.selenium.support.ui.Wait;
 
 import com.google.common.base.Function;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JPanel;
@@ -68,7 +69,6 @@ public class checkIn {
 		String exePath = "H:/Desktop/chrome Driver/chromedriver.exe";
 		System.setProperty("webdriver.chrome.driver", exePath);
 		driver = new ChromeDriver();
-		System.out.println("-absdfsdfsdf-");
 		wait = new FluentWait<WebDriver>(driver).withTimeout(6, TimeUnit.SECONDS).pollingEvery(20,
 				TimeUnit.MILLISECONDS);
 	}
@@ -95,12 +95,12 @@ public class checkIn {
 	}
 
 	/*
-	 * #Searches through the webpage table and compares it to passed value
+	 * #Searches through the web page table and compares it to passed value
 	 * #If the data of the Swimmer Object is equal to the data found within
 	 * the iteration it will return the xpath of the swimmer in the list.
 	 * #Example xPath: "tr_nav
 	 */
-	public static String xpathGetter(Swimmer test1) {
+	public static String xpathGetter(Member test1) {
 		String xpath = "";
 		int counter = 0;
 		found = false;
@@ -109,9 +109,6 @@ public class checkIn {
 			counter++;
 			xpath = "tr_nav";
 			xpath = xpath + Integer.toString(counter);
-			//DEBUG System.out.println(xpath);
-			//System.out.println("Counter" + Integer.toString(counter));
-
 			/* 
 			* Checks if the row in the table with the xpath "tr_nav" + whatever row its on
 			* If it returns true that means there is data, if false that means there are no
@@ -119,28 +116,32 @@ public class checkIn {
 			*/
 			if (isElementPresent(By.id(xpath))) {
 				System.out.println("ELEMENT IS PRESENT|-------|------------------|---------------|");
-				//gottenSwim is all the data in the row in the table
-				//Example: "2376  Martin  Aaron    555-555-5555  Mbr-Add-on"
-				String gottenSwim = driver.findElement(By.id(xpath)).getText();
+				/*
+				gottenSwim is all the data in the row in the table
+				Example: "2376  Martin  Aaron    555-555-5555  Mbr-Add-on"
+				 */
+				String gottenMember = driver.findElement(By.id(xpath)).getText();
 				//DEBUG System.out.println(gottenSwim);
 				//gottenSwim = gottenSwim.toLowerCase();
 				//TODO make file all lowercase so case isn't a problem
 
-				//Remove the first value from gottenSwim, the ID
-				mID = gottenSwim.substring(0, gottenSwim.indexOf("  "));
-				gottenSwim = gottenSwim.substring(gottenSwim.indexOf("  ") + 2);
-				//DEBUG System.out.println(gottenSwim);
-				lN = gottenSwim.substring(0, gottenSwim.indexOf("  "));
-				gottenSwim = gottenSwim.substring(gottenSwim.indexOf("  ") + 2);
-				//DEBUG System.out.println(gottenSwim);
-				fN = gottenSwim.substring(0, gottenSwim.indexOf("  "));
-				//System.out.println("mID|" + mID + "|lN|" + lN + "|fN|" + fN + "|");
+				//Gets the ID from the data pulled from the webpage
+				mID = gottenMember.substring(0, gottenMember.indexOf("  "));
 
-				System.out.printf("%17s %1s %5s %1s %-16s %1s %-13s %1s\n", "Data found in row", "|", mID, "|", lN, "|",
-						fN, "|");
-				//System.out.println("|" + test1.getBarcode() + "|" + test1.getFirstName() + "|" + test1.getLastName() + "|");
+				//Gets the Last Name from the data pulled from the webpage
+				gottenMember = gottenMember.substring(gottenMember.indexOf("  ") + 2);
+				lN = gottenMember.substring(0, gottenMember.indexOf("  "));
+
+				//Gets the First name from the data pulled from the webpage
+				gottenMember = gottenMember.substring(gottenMember.indexOf("  ") + 2);
+				fN = gottenMember.substring(0, gottenMember.indexOf("  "));
+
+				//Compares data found in row to user that is being looked for in a visual output
+				System.out.printf("%17s %1s %5s %1s %-16s %1s %-13s %1s\n", "Data found in row", "|", mID, "|", lN, "|", fN, "|");
 				System.out.printf("   %12s   %1s %5s %1s %-16s %1s %-13s %1s\n", "Looking for?", "|",
 						test1.getBarcode(), "|", test1.getLastName(), "|", test1.getFirstName(), "|");
+
+				//If the user has a Barcode, then it will search including that as well.
 				if (hasID) {
 					if (test1.getBarcode().equalsIgnoreCase(mID) && test1.getFirstName().equalsIgnoreCase(fN)
 							&& test1.getLastName().equalsIgnoreCase(lN)) {
@@ -151,7 +152,6 @@ public class checkIn {
 				}
 			}
 			//This while loop loops while the swimmer hasn't been found and there is still rows available
-
 		} while (!found && isElementPresent(By.id(xpath)));
 
 		//Either found user or ran out of elements
@@ -186,7 +186,7 @@ public class checkIn {
 	}
 
 	//Looping function for checking webpage table for swimmer
-	public static String getxpath(Swimmer test) {
+	public static String getxpath(Member test) {
 
 		if (test.getBarcode().equals("N/A"))
 			hasID = false;
@@ -305,11 +305,10 @@ public class checkIn {
 	/*
 	 * #The program that actually does the clicking on the webiste
 	 */
-	public static void loginSwimmers(ArrayList<Swimmer> swimmer) throws InterruptedException {
+	public static void loginSwimmers(ArrayList<Member> members) throws InterruptedException {
 		//Timer to test how long it takes to login all the swimmers
 		double allSwimStart = System.currentTimeMillis();
-
-		for (Swimmer x : swimmer) {
+		for (Member x : members) {
 			double swimStart = System.currentTimeMillis();
 			System.out.println("\n" + "====================");
 			System.out.print("User: ");
@@ -324,10 +323,13 @@ public class checkIn {
 			dropdown.selectByIndex(2);
 			//SERACH BY LAST NAME                         ***********
 			driver.findElement(By.id("query")).sendKeys(x.getLastName());
-			//boolean found = true;
 			//individual user timer
 			double startTime = System.currentTimeMillis();
 
+			/*
+			This try loop is waiting for the page to update to users with the lastname that
+			matches what was sent to the *query* element a few lines ago
+			 */
 			try {
 				/*
 				 * When you type something into the text field above a
@@ -339,21 +341,13 @@ public class checkIn {
 				 * program sleep for.  This type of while loop is used
 				 * often throughout this portion of code.
 				 */
-
-				//TODO REPLACE THESE WITH THE FUNCTION ABOVE
-				/*while (isElementPresent(By.className("hd-spinner"))) {
-					if (!isElementPresent(By.className("hd-spinner")))
-						found = false;
-				}*/
 				spinnerChecker();
 				//Time for all page elements to load
 				double endTime = System.currentTimeMillis() - startTime;
 				System.out.println("Query Spinner Time: " + endTime / 1000 + " seconds");
-
 			} catch (StaleElementReferenceException e2) {
 				e2.printStackTrace();
 			}
-
 			/*
 			 * "Second" enter press, the "First" one occurs when you type the name into the box
 			 * This makes the list of objects on the page smaller
@@ -364,8 +358,9 @@ public class checkIn {
 			 */
 			wait.until(ExpectedConditions.elementToBeClickable(searchBox));
 			searchBox.sendKeys(Keys.ENTER);
-
 			//Second search time for enter press search
+
+
 			startTime = System.currentTimeMillis();
 			try {
 				spinnerChecker();
@@ -373,7 +368,6 @@ public class checkIn {
 				double endTime = System.currentTimeMillis() - startTime;
 				System.out.println("User Search Spinner Time: " + endTime / 1000 + " seconds");
 			} catch (StaleElementReferenceException e2) {
-
 			}
 			//TODO similar to one above, what is this used for
 			if (!isElementPresent(By.className("hd-spinner")))
@@ -410,7 +404,7 @@ public class checkIn {
 				}
 
 				// START LOOKING FOR CORRECT ROW WITH USER
-				WebElement swimmerLine = null;
+				WebElement memberLine = null;
 				String xpath = getxpath(x);
 				pxpath = "//tr[@id='" + xpath + "']//td[1]";
 				//DEBUG System.out.println("xpath run with xpath as " + "//tr[@id='" + xpath + "']//td[1]");
@@ -418,9 +412,11 @@ public class checkIn {
 				//all available pages doesn't find anything
 				if (!(xpath.equals("NO PATH USER NOT FOUND"))) {
 					//swimmerLine = driver.findElement(By.xpath("//tr[@id='" + xpath + "']//td[1]"));
-					swimmerLine = driver.findElement(By.xpath(pxpath));
+					memberLine = driver.findElement(By.xpath(pxpath));
 					spinnerChecker();
-					HoverAndClick(driver, swimmerLine, swimmerLine);
+
+					//This line takes us to a new page, the members personal page.
+					HoverAndClick(driver, memberLine, memberLine);
 
 					//DEBUG System.out.println("TRIED HOVER AND CLICK");
 					//Resizes window so that the Swimlesson button is visible on the screen
@@ -476,10 +472,69 @@ public class checkIn {
 		double endTime = System.currentTimeMillis() - allSwimStart;
 		System.out.println("Entire Process " + endTime / 1000 + " seconds");
 		gui.finalCheckPanel = new JPanel();
+
+		try {
+			if (gui.noAcctMembershipCreate) {
+				checkIn.createNewMemberships(gui.unable);
+			}
+		} catch (InterruptedException e) {
+
+		}
+
 		driver.close();
 		gui.resultGUI();
-
 	}
+
+	public static void createNewMemberships(ArrayList<Member> membersWithoutAccounts) throws InterruptedException {
+		for(Member someMember : membersWithoutAccounts) {
+			checkIn.connectToWebsite("https://qccloud.net/members/add");
+			WebElement firstName = driver.findElement(By.id("member_first_name"));
+			WebElement lastName = driver.findElement(By.id("member_last_name"));
+			WebElement saveButton = driver.findElement(By.id("submit"));
+			/*
+			The Number in membership type is determined by using inspect element
+			on the webpage and manually determining the value
+			 */
+			String membershipType = "1";
+
+			//EXPAND IF MORE CLASSES ARE ADDED TODO
+			if(someMember instanceof Swimmer){
+				membershipType = "8";
+			}
+
+			firstName.sendKeys(someMember.getFirstName());
+			lastName.sendKeys(someMember.getLastName());
+
+			WebElement groupDropDown = driver.findElement(By.id("group_type_id"));
+			Select dropdown = new Select(groupDropDown);
+			dropdown.selectByValue(membershipType);
+			double startTime = System.currentTimeMillis();
+			try {
+				spinnerChecker();
+				double endTime = System.currentTimeMillis() - startTime;
+				System.out.println("Loading Spinner: " + endTime / 1000 + " seconds");
+			} catch (StaleElementReferenceException e2) {
+
+			}
+			if(someMember instanceof Swimmer) {
+				WebElement membershipTypeDropDown = driver.findElement(By.id("member_membership_type_id"));
+				dropdown = new Select(membershipTypeDropDown);
+				dropdown.selectByValue("9");
+			}
+			boolean clicked = false;
+			while (!clicked && saveButton.isDisplayed()) {
+				counter1 = 0;
+				System.out.println("User has had a membership created");
+				clicked = true;
+				if(gui.SafeMode) {
+					System.out.println("runs");
+					//checkInButton.click();
+				}
+			}
+		}
+	}
+
+
 
 	//Hovers and clicks on certain object in the program
 	public static void HoverAndClick(WebDriver driver, WebElement elementToHover, WebElement elementToClick) {

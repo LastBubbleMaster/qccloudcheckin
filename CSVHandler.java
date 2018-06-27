@@ -202,7 +202,6 @@ public class CSVHandler {
 		
 		pw.append(sb.toString());
 		pw.close();
-		System.out.println("done!111");
 	}
 
 	// accepting int's, booleans, and doubles and converting to string for CSV storage
@@ -236,8 +235,7 @@ public class CSVHandler {
 		for (String x : defaultValues) {
 			count++;
 			if (x.equals(settingID)) {
-				System.out.println("Setting Matched: " + x + " Value: " + value);
-				System.out.println("Count: " + count);
+				System.out.println("Setting Matched: " + x + ", Value: " + value);
 				defaultValues.set(count + 1, value);
 				settingFound = true;
 			}

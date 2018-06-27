@@ -1,45 +1,20 @@
 package swimLesson;
 
-public class Swimmer {
-	
-	private String firstName;
-	private String lastName;
-	private String barcode;
-	
+public class Swimmer extends Member{
+
+	private static String className = "Swimmer";
+
 	//Default Constructor
-	public Swimmer(String fN, String lN, String b)
-	{
-		firstName = fN;
-		lastName = lN;
-		if(b.length() == 0)
-			barcode = "N/A";
-		else
-			barcode = b;
-		
+	public Swimmer(String fN, String lN, String b) {
+		super(fN,lN,b);
 	}
 	//Getter Method
-	public String getFirstName()
-	{
-		return firstName;
-	}
-	public String getLastName()
-	{
-		return lastName;
-	}
-	public String getBarcode()
-	{
-		return barcode;
+
+	public static String getClassName() {
+		return className;
 	}
 	
-	
-	public String toString()
-	{
-		System.out.print(getFirstName() + " " + getLastName() + " " + getBarcode());
-		return "";
-	}
-	
-	public boolean equals(Swimmer swimmer)
-	{
+	public boolean equals(Swimmer swimmer) {
 		if(swimmer.getFirstName().equals(this.getFirstName()) &&
 				swimmer.getLastName().equals(this.getLastName()) &&
 				swimmer.getBarcode().equals(this.getBarcode()))
@@ -48,6 +23,10 @@ public class Swimmer {
 		} else {
 			return false;
 		}
+	}
+
+	public String toString() {
+		return className + ": " + getFirstName() + " " + getLastName() + " " + getBarcode();
 	}
 	
 }

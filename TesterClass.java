@@ -64,11 +64,11 @@ public class TesterClass {
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
-		System.out.println("TESTING" + aryLines.length);
-		CreateClasses.createClasses(aryLines);
-		System.out.println("End of Swim Classes " + "\n" + "===========================");
+		//System.out.println("TESTING" + aryLines.length);
+		Team cambridge_pool = new Team(aryLines);
+		System.out.println("End of Classes " + "\n" + "===========================");
 		TimeUnit.MILLISECONDS.sleep(500);
-		gui.createGUI(CreateClasses.getSwimClass());
+		gui.createGUI(Team.getAllClasses());
 
 	}
 }

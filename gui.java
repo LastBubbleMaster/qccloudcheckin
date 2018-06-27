@@ -1,49 +1,43 @@
 package swimLesson;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.GridLayout;
+import org.openqa.selenium.NoSuchSessionException;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileSystemView;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import javax.swing.filechooser.FileSystemView;
-
-import org.openqa.selenium.NoSuchSessionException;
 
 public class gui {
 
 	static boolean close = false;
 	static JFrame finalCheckFrame = new JFrame("Check-In Overview");
 	static JPanel finalCheckPanel = new JPanel();
-
 	static int numOfLessonObjects = 18;
-	static int swimClassSize;
+	static int totalClassSize;
 	static int row = 0;
 	static int col = 0;
 	static int bigcounter = 0;
 	static int counterPow = 1;
 	static boolean DarkTheme;
 	static boolean SafeMode;
+	static boolean noAcctMembershipCreate;
 	static int counter = 0;
 	static String[] daysOfTheWeek = { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" };
 
 	//Keeps track of the success/force/failure of checking swimmers in
-	static ArrayList<Swimmer> good = new ArrayList<Swimmer>();
-	static ArrayList<Swimmer> bad = new ArrayList<Swimmer>();
-	static ArrayList<Swimmer> unable = new ArrayList<Swimmer>();
+	static ArrayList<Member> good = new ArrayList<Member>();
+	static ArrayList<Member> bad = new ArrayList<Member>();
+	static ArrayList<Member> unable = new ArrayList<Member>();
 
-	//Gets swimmers from checkboxes and put into this array
-	static ArrayList<String> checkedSwimText;
-	//Master list of all swimmers shown in GUI
-	static ArrayList<Swimmer> checkedSwimSwimmers = new ArrayList<Swimmer>();
+	//Gets members from checkboxes and put into this array
+	static ArrayList<String> checkedMembersText;
+	//Master list of all members shown in GUI
+	static ArrayList<Member> membersBeingCheckedIn = new ArrayList<Member>();
 
 	/*
 	 * Prints to the console the Swimmers and what
@@ -53,15 +47,15 @@ public class gui {
 		
 		System.out.println();
 		System.out.print("GOOD:   [");
-		for (Swimmer x : good)
+		for (Member x : good)
 			System.out.print(x + ",");
 		System.out.println("]");
 		System.out.print("BAD:    [");
-		for (Swimmer x : bad)
+		for (Member x : bad)
 			System.out.print(x + ",");
 		System.out.println("]");
 		System.out.print("UNABLE: [");
-		for (Swimmer x : unable)
+		for (Member x : unable)
 			System.out.print(x + ",");
 		System.out.println("]");
 		System.out.println();
@@ -134,38 +128,42 @@ public class gui {
 		if (goodSize == 0) {
 			goodPanel.add(new JLabel("NONE"));
 		} else {
-			for (Swimmer y : good) {
+			for (Member y : good) {
 				goodPanel.add(new JLabel(y.getLastName() + ", " + y.getFirstName() + " " + y.getBarcode()));
 			}
 		}
 		if (badSize == 0) {
 			badPanel.add(new JLabel("NONE"));
 		} else {
-			for (Swimmer y : bad) {
+			for (Member y : bad) {
 				badPanel.add(new JLabel(y.getLastName() + ", " + y.getFirstName() + " " + y.getBarcode()));
 			}
 		}
 		if (unableSize == 0) {
 			unablePanel.add(new JLabel("NONE"));
 		} else {
-			for (Swimmer y : unable) {
+			for (Member y : unable) {
 				unablePanel.add(new JLabel(y.getLastName() + ", " + y.getFirstName() + " " + y.getBarcode()));
 			}
 		}
 
 		//Removes all users from 
-		good = new ArrayList<Swimmer>();
-		bad = new ArrayList<Swimmer>();
-		unable = new ArrayList<Swimmer>();
+		good = new ArrayList<Member>();
+		bad = new ArrayList<Member>();
+		unable = new ArrayList<Member>();
 
-		checkedSwimText = new ArrayList<String>();
+		checkedMembersText = new ArrayList<String>();
 
 		outputFrame.add(goodPanel);
 		outputFrame.add(badPanel);
 		outputFrame.add(unablePanel);
 		if(CSVHandler.getSetting("noAccCreateMembership").equals("true")) {
 			additionalOptionsButtonPanel.setLayout(new GridLayout(0,2));
-			additionalOptionsButtonPanel.add(createNoAcctCreateMembershipButton());
+			try {
+				additionalOptionsButtonPanel.add(createNoAcctCreateMembershipButton());
+			} catch(Exception e) {
+
+			}
 			additionalOptionsPanel.add(additionalOptionsButtonPanel);
 			outputFrame.add(additionalOptionsPanel);
 		}
@@ -178,22 +176,28 @@ public class gui {
 	/*
 	 * #Display of up to 9 checkboxes per class that can be selected to be added to a list for automated check-in
 	 */
-	public static void createSwimmerCheckboxSelectionGUI(ArrayList<Swimmer> allSwimmerList)
+	public static void createSwimmerCheckboxSelectionGUI(ArrayList<Member> allMemberList, Class y)
 			throws InterruptedException {
-		JFrame swimmerCheckboxFrame = new JFrame("Swimmer Checking");
-		JPanel swimmerCheckboxPanel = new JPanel();
+		JFrame memberCheckboxFrame = new JFrame(y.getClassType() + " Checking");
+		JPanel memberCheckboxPanel = new JPanel();
+
+		TitledBorder title;
+		title = BorderFactory.createTitledBorder(y.getClassType());
+		memberCheckboxPanel.setBorder(title);
+		memberCheckboxPanel.setName(y.getClassType());
+
 		//TODO is this unnecessary
-		ArrayList<Swimmer> swimmers = allSwimmerList;
-		int swimSize = allSwimmerList.size();
+		ArrayList<Member> members = allMemberList;
+		int swimSize = allMemberList.size();
 		//TODO what is the point of this/ test
 		if (swimSize > 9)
 			errorGUI(
 					"Program detected that the class size was greater than 9.  Either fix the SwimClassSheet.txt file or make the class into seperate classes.");
-		swimmerCheckboxPanel.setLayout(new GridLayout(10, 0));
-		for (Swimmer x : swimmers) {
-			JCheckBox swimmerCheckbox = new JCheckBox();
-			swimmerCheckbox.setText(x.getLastName() + ", " + x.getFirstName() + ":" + x.getBarcode());
-			swimmerCheckboxPanel.add(swimmerCheckbox);
+		memberCheckboxPanel.setLayout(new GridLayout(10, 0));
+		for (Member x : members) {
+			JCheckBox memberCheckbox = new JCheckBox();
+			memberCheckbox.setText(x.getLastName() + ", " + x.getFirstName() + ":" + x.getBarcode());
+			memberCheckboxPanel.add(memberCheckbox);
 		}
 
 		JButton backButton = new JButton("Back without saving");
@@ -202,8 +206,8 @@ public class gui {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				swimmerCheckboxFrame.remove(swimmerCheckboxPanel);
-				swimmerCheckboxFrame.dispose();
+				memberCheckboxFrame.remove(memberCheckboxPanel);
+				memberCheckboxFrame.dispose();
 			}
 		});
 
@@ -212,66 +216,82 @@ public class gui {
 		saveButton.setBackground(Color.GRAY);
 		saveButton.addActionListener(new ActionListener() {
 
+			/*
+			The Problem is HERE
+			What needs to happen is for each type of class the program needs to know
+			if its a Swimmer or ... some class so that when it creates the object
+			to be put into the checkedMembersText it knows that
+			 */
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				checkedSwimText = manageCheckedCheckboxes(swimmerCheckboxPanel);
-				boolean noSwimmer = false;
+				checkedMembersText = manageCheckedCheckboxes(memberCheckboxPanel);
+				boolean noMember = false;
 				boolean duplicate = false;
-				if (checkedSwimText.size() == 0) {
-					//Nothing Happens no swimmers
-					noSwimmer = true;
+				if (checkedMembersText.size() == 0) {
+					//Nothing Happens no members
+					noMember = true;
 
 					//making sure to output with correct grammar
-				} else if (checkedSwimText.size() > 1) {
-					System.out.println("Swimmers Added: ");
+				} else if (checkedMembersText.size() > 1) {
+					System.out.println("Members Added: ");
 				} else {
-					System.out.println("Swimmer Added: ");
+					System.out.println("Member Added: ");
 				}
 
 				//If there are swimmers
-				if (!noSwimmer) {
+				if (!noMember) {
 					System.out.println("------------");
-					for (String swimmer : checkedSwimText) {
+					for (String member : checkedMembersText) {
 						//reset for each swimmer, for checking if a given swimmer is a duplicate/ already added to the check-in list
 						duplicate = false;
 						//DEBUG System.out.println(swimmer);
-						String lN = swimmer.substring(0, swimmer.indexOf(","));
-						swimmer = swimmer.substring(swimmer.indexOf(",") + 2);
-						String fN = swimmer.substring(0, swimmer.indexOf(":"));
-						swimmer = swimmer.substring(swimmer.indexOf(":") + 1);
-						String mID = swimmer.substring(0);
-						Swimmer newSwimmer = new Swimmer(fN, lN, mID);
+						String lN = member.substring(0, member.indexOf(","));
+						member = member.substring(member.indexOf(",") + 2);
+						String fN = member.substring(0, member.indexOf(":"));
+						member = member.substring(member.indexOf(":") + 1);
+						String mID = member.substring(0);
+
+						System.out.println(Swimmer.getClassName());
+						System.out.println(memberCheckboxPanel.getName());
+
+						Member newMember;
+						if(memberCheckboxPanel.getName().equals(y.getClassType())) {
+							newMember = new Swimmer(fN, lN, mID);
+						} else {
+							newMember = new Member(fN, lN, mID);
+						}
 						//TODO setting to be able to add the same person/ check in the same person twice/ add to list
-						for (Swimmer swimmerFromList : checkedSwimSwimmers) {
-							if (newSwimmer.equals(swimmerFromList)) {
+						for (Member swimmerFromList : membersBeingCheckedIn) {
+							if (newMember.equals(swimmerFromList)) {
 								duplicate = true;
 								System.out.println("This swimmer is a duplicate so it isn't being added");
 							}
 						}
 						//If it's not a duplicate
 						if (!duplicate) {
-							checkedSwimSwimmers.add(newSwimmer);
+							membersBeingCheckedIn.add(newMember);
 						}
 					}
 
-					for (Swimmer u : checkedSwimSwimmers) {
+					for (Member u : membersBeingCheckedIn) {
 						System.out.println(u);
 					}
 
 					System.out.println("-==-==-");
-					swimmerCheckboxFrame.dispose();
+					memberCheckboxFrame.dispose();
 				}
 
 			}
 
 		});
-		swimmerCheckboxPanel.add(saveButton);
-		swimmerCheckboxPanel.add(backButton);
-		swimmerCheckboxFrame.add(swimmerCheckboxPanel);
-		swimmerCheckboxFrame.setSize(200, 500);
-		swimmerCheckboxFrame.setLocationRelativeTo(null);
-		swimmerCheckboxFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		swimmerCheckboxFrame.setVisible(true);
+		memberCheckboxPanel.add(saveButton);
+		memberCheckboxPanel.add(backButton);
+		memberCheckboxFrame.add(memberCheckboxPanel);
+		memberCheckboxFrame.setSize(200, 500);
+		memberCheckboxFrame.setLocationRelativeTo(null);
+		memberCheckboxFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		memberCheckboxFrame.setVisible(true);
 	}
 
 	/*
@@ -299,9 +319,9 @@ public class gui {
 	public static void confirmSignInGUI() {
 
 		finalCheckPanel = new JPanel();
-		finalCheckPanel.setLayout(new GridLayout(checkedSwimSwimmers.size() + 2, 0));
+		finalCheckPanel.setLayout(new GridLayout(membersBeingCheckedIn.size() + 2, 0));
 		//DEBUG System.out.println(checkedSwimSwimmers.size() + " : SIZE");
-		for (Swimmer y : checkedSwimSwimmers) {
+		for (Member y : membersBeingCheckedIn) {
 			//DEBUG Swimmer y = SwimClass.getUserByBarcode(x);
 			finalCheckPanel.add(new JLabel(y.getFirstName() + ", " + y.getLastName() + " " + y.getBarcode()));
 		}
@@ -318,7 +338,7 @@ public class gui {
 				checkIn.connectToWebsite(checkIn.QCCLOUD_WEBSITE);
 				checkIn.login();
 				try {
-					checkIn.loginSwimmers(checkedSwimSwimmers);
+					checkIn.loginSwimmers(membersBeingCheckedIn);
 					finalCheckFrame.dispose();
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
@@ -483,7 +503,6 @@ public class gui {
 		return darkmode;
 	}
 	
-	
 	public static JRadioButton safeModeButtonCreate() {
 		JRadioButton safemode = new JRadioButton("Safe Mode");
 
@@ -531,8 +550,6 @@ public class gui {
 			status = "enabled";
 		} else if(!SafeMode){
 			status = "disabled";
-		} else {
-			System.out.println("ERROR");
 		}
 		JLabel safemodeLabel = new JLabel("Safe Mode is " + status);
 		return safemodeLabel;
@@ -547,9 +564,9 @@ public class gui {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("TEST");
-				checkedSwimText = new ArrayList<String>();
-				checkedSwimSwimmers = new ArrayList<Swimmer>();
+				System.out.println("Cleared All Selected Users");
+				checkedMembersText = new ArrayList<String>();
+				membersBeingCheckedIn = new ArrayList<Member>();
 				finalCheckFrame.remove(finalCheckPanel);
 				finalCheckFrame.dispose();
 				finalCheckFrame = new JFrame("Check-In Overview");
@@ -559,7 +576,7 @@ public class gui {
 		return clearButton;
 	}
 
-	public static JButton createNoAcctCreateMembershipButton() {
+	public static JButton createNoAcctCreateMembershipButton() throws InterruptedException{
 		//check in button
 		JButton noAcctButton = new JButton();
 		noAcctButton.setText("<html>Create Memberships/nfor users who/n don't have memberships</html>");
@@ -568,6 +585,16 @@ public class gui {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				checkIn.chromeSetup();
+				checkIn.connectToWebsite(checkIn.QCCLOUD_WEBSITE);
+				checkIn.login();
+				System.out.println(unable.size() + " ---");
+				try {
+					System.out.println("NEVERMIND" + unable.size() + unable.get(0));
+					checkIn.createNewMemberships(unable);
+				} catch (Exception e1) {
+					System.out.println("MIND");
+				}
 				//TODO
 				//METHOD TO BE RUN
 			}
@@ -598,7 +625,7 @@ public class gui {
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println(CSVHandler.getSetting("Sorting Order"));
+				System.out.println("Sorting order on next restart: " + CSVHandler.getSetting("Sorting Order"));
 				frameToExit.dispose();
 				try {
 					checkIn.driver.close();
@@ -620,7 +647,6 @@ public class gui {
 		sortBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Can you see if this action is performed?");
 				@SuppressWarnings("rawtypes")
 				JComboBox cb = (JComboBox) e.getSource();
 				String sortOption = (String) cb.getSelectedItem();
@@ -637,11 +663,11 @@ public class gui {
 	/*
 	 * #Main Swim Lesson Chooser GUI
 	 */
-	public static void createGUI(ArrayList<SwimClass> swim) {
+	public static void createGUI(ArrayList<Class> classList) {
 
 		int sortOption = 0;
-		swimClassSize = CreateClasses.getSwimClassesSize();
-
+		totalClassSize = Team.getNumberOfClasses();
+		System.out.println("Total number of Classes: " + totalClassSize);
 		if (CSVHandler.getSetting("Sorting Order").equals("default")) {
 			sortOption = 0;
 		} else if (CSVHandler.getSetting("Sorting Order").equals("teacher")) {
@@ -716,17 +742,22 @@ public class gui {
 		
 		if(CSVHandler.getSetting("noAccCreateMembership").equals("true")) {
 			noAccCreateMembership.setSelected(true);
+			noAcctMembershipCreate = true;
+		} else {
+			noAccCreateMembership.setSelected(false);
+			noAcctMembershipCreate = false;
 		}
 		
+
+		
 		if (sortOption == 0) {
-			for (int i = 0; i < CreateClasses.getSwimClassesSize() / 18 + 1; i++) {
-				System.out.println("RUN");
+			for (int i = 0; i < Team.getNumberOfClasses() / 18 + 1; i++) {
 				subPanel = new JPanel();
 				subPanel.setLayout(new GridLayout(1, numOfLessonObjects));
 				TitledBorder title;
 				title = BorderFactory.createTitledBorder("All Classes");
 				subPanel.setBorder(title);
-				addSwimmersToPanel(subPanel, "default", "", swim);
+				addMembersToPanel(subPanel, "default", "", classList);
 				if(DarkTheme){
 					subPanel.setBackground(Color.GRAY);
 				}
@@ -734,56 +765,56 @@ public class gui {
 			}
 
 		} else if (sortOption == 1) {//By Teacher
-			ArrayList<String> teachersNames = CreateClasses.getTeachersNames();
-			for (String x : teachersNames) {
+			ArrayList<String> instructorsNames = Team.getAllInstructors();
+			for (String x : instructorsNames) {
 				subPanel = new JPanel();
 				subPanel.setLayout(new GridLayout(1, numOfLessonObjects));
 				TitledBorder title;
 				title = BorderFactory.createTitledBorder(x);
 				subPanel.setBorder(title);
-				addSwimmersToPanel(subPanel, "teacher", x, swim);
+				addMembersToPanel(subPanel, "teacher", x, classList);
 				if(DarkTheme){
 					subPanel.setBackground(Color.GRAY);
 				}
 				mainPanel.add(subPanel);
 			}
 		} else if (sortOption == 2) {//By Day	
-			ArrayList<String> classDays = CreateClasses.getClassDays();
+			ArrayList<String> classDays = Team.getAllDays();
 			for (String x : classDays) {
 				subPanel = new JPanel();
 				subPanel.setLayout(new GridLayout(1, numOfLessonObjects));
 				TitledBorder title;
 				title = BorderFactory.createTitledBorder(x);
 				subPanel.setBorder(title);
-				addSwimmersToPanel(subPanel, "day", x, swim);
+				addMembersToPanel(subPanel, "day", x, classList);
 				if(DarkTheme){
 					subPanel.setBackground(Color.GRAY);
 				}
 				mainPanel.add(subPanel);
 			}
 		} else if (sortOption == 3) {//By Time
-			ArrayList<String> classTimes = CreateClasses.getClassTimes();
+			ArrayList<String> classTimes = Team.getAllStartTimes();
 			for (String x : classTimes) {
 				subPanel = new JPanel();
 				subPanel.setLayout(new GridLayout(1, numOfLessonObjects));
 				TitledBorder title;
 				title = BorderFactory.createTitledBorder(x);
 				subPanel.setBorder(title);
-				addSwimmersToPanel(subPanel, "time", x, swim);
+				addMembersToPanel(subPanel, "time", x, classList);
 				if(DarkTheme){
 					subPanel.setBackground(Color.GRAY);
 				}
 				mainPanel.add(subPanel);
 			}
 		} else if (sortOption == 4) {//By Level
-			ArrayList<String> classLevels = CreateClasses.getClassLevels();
+			ArrayList<String> classLevels = Team_SwimLessons.getAllLevels();
 			for (String x : classLevels) {
 				subPanel = new JPanel();
 				subPanel.setLayout(new GridLayout(1, numOfLessonObjects));
 				TitledBorder title;
 				title = BorderFactory.createTitledBorder(x);
 				subPanel.setBorder(title);
-				addSwimmersToPanel(subPanel, "level", x, swim);
+				addMembersToPanel(subPanel, "level", x, classList);
 				if(DarkTheme){
 					subPanel.setBackground(Color.GRAY);
 				}
@@ -792,10 +823,12 @@ public class gui {
 		} else {
 			System.out.println("ERROR: Sort Option not included");
 		}
-
 		JPanel sortTitle = new JPanel();
 		String[] sortOptions = { "default", "teacher", "day", "time", "level" };
 		JComboBox sortBox = createComboBox(sortOptions);
+		if(DarkTheme) {
+			sortTitle.setBackground(Color.GRAY);
+		}
 		sortTitle.add(new JLabel("Sort By: "));
 		sortTitle.add(sortBox);
 
@@ -814,7 +847,7 @@ public class gui {
 		mainPanel.add(decision);
 		mainFrame.add(mainPanel);
 		mainFrame.setJMenuBar(menuBar);
-		mainFrame.setSize(1886, 1038);
+		mainFrame.setSize(1800, 1038);
 		//mainFrame.setResizable(false);
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -824,42 +857,46 @@ public class gui {
 
 	//public static void yesAdd();
 
-	public static void addSwimmersToPanel(JPanel destPanel, String sortBy, String modifier, ArrayList<SwimClass> swim) {
+	public static void addMembersToPanel(JPanel destPanel, String sortBy, String modifier, ArrayList<Class> swim) {
 		counter = 0;
-		System.out.println("swimClassSize:" + swimClassSize);
 		if (sortBy.equals("default")) {
-			for (int i = 0; i < swimClassSize; i++) {
+			for (int i = 0; i < totalClassSize; i++) {
 
 				if ((i < counterPow * 18) && (i + 1 > (counterPow - 1) * 18)) {
 					counter++;
-					addSwimmersToPanel(destPanel, swim.get(i));
+					addMembersToPanel(destPanel, swim.get(i));
 				}
 
 			}
 		} else {
-			for (SwimClass x : swim) {
+			for (Class x : swim) {
 				if (sortBy.equals("teacher")) {
-					if (modifier.equalsIgnoreCase(x.getTeacher())) {
+					if (modifier.equalsIgnoreCase(x.getInstructor())) {
 						counter++;
-						addSwimmersToPanel(destPanel, x);
+						addMembersToPanel(destPanel, x);
 					}
 				} else if (sortBy.equals("day")) {
 					System.out.println(modifier + " " + x.getDay());
 					if (modifier.equalsIgnoreCase(x.getDay())) {
 						counter++;
-						addSwimmersToPanel(destPanel, x);
+						addMembersToPanel(destPanel, x);
 					}
 				} else if (sortBy.equals("time")) {
 					System.out.println(modifier + " " + x.getStartTime());
 					if (modifier.equalsIgnoreCase(x.getStartTime())) {
 						counter++;
-						addSwimmersToPanel(destPanel, x);
+						addMembersToPanel(destPanel, x);
 					}
 				} else if (sortBy.equals("level")) {
-					System.out.println(modifier + " " + x.getLevel());
-					if (modifier.equalsIgnoreCase(x.getLevel())) {
-						counter++;
-						addSwimmersToPanel(destPanel, x);
+					
+					try {
+						System.out.println(modifier + " " + ((SwimClass) x).getLevel());
+						if (modifier.equalsIgnoreCase(((SwimClass) x).getLevel())) {
+							counter++;
+							addMembersToPanel(destPanel, x);
+						}
+					} catch (ClassCastException e) {
+						System.out.println("Class isn't sortable by this criteria so it isn't shown");
 					}
 				}
 			}
@@ -875,11 +912,15 @@ public class gui {
 		}
 	}
 
-	public static void addSwimmersToPanel(JPanel destPanel, SwimClass x) {
+	public static void addMembersToPanel(JPanel destPanel, Class x) {
 		String buttonText = "<html>";
-		buttonText = buttonText + x.getTeacher() + "<br />" + x.getDay() + "<br />" + x.getStartTime() + "<br />"
-				+ x.getLevel() + "</html>";
+		buttonText =  x.getButtonText();
 		JButton test = new JButton();
+
+		TitledBorder title;
+		title = BorderFactory.createTitledBorder(x.getClassType());
+		test.setBorder(title);
+
 		if (DarkTheme) {
 			test.setBackground(Color.GRAY);
 			test.setForeground(Color.LIGHT_GRAY);
@@ -889,8 +930,9 @@ public class gui {
 		test.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+
 				try {
-					createSwimmerCheckboxSelectionGUI(x.getStudents());
+					createSwimmerCheckboxSelectionGUI(x.getMembers(),x);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
