@@ -56,8 +56,8 @@ public class checkIn {
 		System.out.println("[][][][][][][][][][][][][][][]");
 		System.out.println(" QuikCheckCloud Check-In Tool ");
 		System.out.println(" Developed By: Nick Karlovich ");
-		System.out.println("        Version 1.1.0         ");
-		System.out.println("        July, 13, 2017        ");
+		System.out.println("        Version 1.2.0         ");
+		System.out.println("       June, 27th, 2018       ");
 		System.out.println("[][][][][][][][][][][][][][][]");
 
 	}
